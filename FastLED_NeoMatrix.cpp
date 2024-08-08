@@ -2,6 +2,11 @@
   Arduino library based on Adafruit_Neomatrix but modified to work with FastLED
   by Marc MERLIN <marc_soft@merlins.org>
 
+  August 9TH, 2024 - Unexpected Maker (https://unexpectedmaker.com)
+  Added ability to update the matrix type to change display orientation
+  dynamically
+
+
   Original notice and license from Adafruit_Neomatrix:
   ------------------------------------------------------------------------
   Arduino library to control single and tiled matrices of WS2811- and
@@ -38,38 +43,43 @@
 #include <FastLED_NeoMatrix.h>
 
 // Constructor for single matrix:
-FastLED_NeoMatrix::FastLED_NeoMatrix(CRGB *leds, uint16_t w, uint16_t h, uint8_t matrixType): 
-  Framebuffer_GFX(leds, w, h, NULL) {
-    type = matrixType;
-    tilesX = 0;
-    tilesY = 0;
-  }
+FastLED_NeoMatrix::FastLED_NeoMatrix(CRGB *leds, uint16_t w, uint16_t h,
+                                     uint8_t matrixType)
+    : Framebuffer_GFX(leds, w, h, NULL) {
+  type = matrixType;
+  tilesX = 0;
+  tilesY = 0;
+}
 
 // Constructor for tiled matrices:
-FastLED_NeoMatrix::FastLED_NeoMatrix(CRGB *leds, uint16_t mW, uint16_t mH, 
-    uint8_t tX, uint8_t tY, uint8_t matrixType) :
-  Framebuffer_GFX(leds, mW * tX, mH * tY, NULL) {
-    matrixWidth = mW;
-    matrixHeight = mH;
-    type = matrixType;
-    tilesX = tX;
-    tilesY = tY;
+FastLED_NeoMatrix::FastLED_NeoMatrix(CRGB *leds, uint16_t mW, uint16_t mH,
+                                     uint8_t tX, uint8_t tY, uint8_t matrixType)
+    : Framebuffer_GFX(leds, mW * tX, mH * tY, NULL) {
+  matrixWidth = mW;
+  matrixHeight = mH;
+  type = matrixType;
+  tilesX = tX;
+  tilesY = tY;
 }
 
 void FastLED_NeoMatrix::show() {
   Framebuffer_GFX::showfps();
-  if (_show) { _show(); return; };
-  #ifdef ESP8266
-// Disable watchdog interrupt so that it does not trigger in the middle of
-// updates. and break timing of pixels, causing random corruption on interval
-// https://github.com/esp8266/Arduino/issues/34
-    ESP.wdtDisable();
-#endif
-    FastLED.show();
+  if (_show) {
+    _show();
+    return;
+  };
 #ifdef ESP8266
-    ESP.wdtEnable(1000);
+  // Disable watchdog interrupt so that it does not trigger in the middle of
+  // updates. and break timing of pixels, causing random corruption on interval
+  // https://github.com/esp8266/Arduino/issues/34
+  ESP.wdtDisable();
+#endif
+  FastLED.show();
+#ifdef ESP8266
+  ESP.wdtEnable(1000);
 #endif
 }
 
+void FastLED_NeoMatrix::update_type(uint8_t _type) { type = _type; }
 
 // vim:sts=2:sw=2
